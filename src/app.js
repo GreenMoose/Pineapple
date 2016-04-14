@@ -9,11 +9,6 @@
  * Let's you pin CYOAs & posts
  * Some other stuff I forgot
  */
-/*
-var cyoaID   = currentID.cyoaID;
-var threadID = currentID.threadID;
-var postID   = currentID.postID;
-*/
 { //                                    ===   GLBL   ===
 	var UI = require('ui');
 	var ajax = require('ajax');
@@ -22,22 +17,25 @@ var postID   = currentID.postID;
 
 	var pineAPI = 'http://www.anonpone.com/api/'; //base url for the api
 	
+	//Form of: [cyoaID, cyoaID, ...]
 	var pinnedCYOAs = Settings.option('pinnedCYOAs');
 	if (pinnedCYOAs === undefined) pinnedCYOAs = [];
-	Settings.option('pinnedPosts', {
-		112: [289596]
-	}); //Form of : 'CyoaId': ['postId', 'postId',...]
+	
+	//Form of: {cyoaID: [postId, postID, ...]}
 	var pinnedPosts = Settings.option('pinnedPosts');
 	if (pinnedPosts === undefined) pinnedPosts = {};
+	
 	//Settings!
 	Settings.option('sortMethod', 0);
 	var sortMethod = Settings.option('sortMethod'); //see sortMethodName
 	
 	
-	var currentID = {
+	var current = {
 		'cyoaID': null,
 		'threadID': null,
-		'postID': null
+		'postID': null,
+		'cyoaTitle': null,
+		'threadTitle': null
 	};
 	var currentData;
 	var currentPage;
@@ -255,8 +253,8 @@ var postID   = currentID.postID;
 		return items;
 	};
 	var parseReplies     = function() {
-		var cyoaID = currentID.cyoaID;
-		var threadID = currentID.threadID;
+		var cyoaID = current.cyoaID;
+		var threadID = current.threadID;
 		
 		var items = [];
 		ajax({
@@ -351,7 +349,10 @@ var postID   = currentID.postID;
 	var loadSettings     = function() {
 		console.log('Settings Loading');
 		loadSplash.show();
-
+		
+		var clearConfirmCYOAs = false;
+		var clearConfirmPosts = false;
+		
 		var menu = new UI.Menu({
 			fullscreen: false,
 			sections: [{
@@ -364,6 +365,15 @@ var postID   = currentID.postID;
 					id: 1,
 					title: 'Reverse',
 					subtitle: sortReverse ? 'True' : 'False'
+				}]
+			}, {
+				title: 'Clear Pins',
+				items : [{
+					id: 2,
+					title: 'Clear CYOAs'
+				}, {
+					id: 3,
+					title: 'Clear Posts'
 				}]
 			}]
 		});
@@ -386,11 +396,33 @@ var postID   = currentID.postID;
 			}
 			
 			if (e.item.id === 2) {
-				repliesDisplay++;
-				if (repliesDisplay > repliesDisplayName.length - 1) repliesDisplay = 0;
-				menu.item(e.sectionIndex, e.itemIndex, {
-					subtitle: repliesDisplayName[repliesDisplay]
-				});
+				if (clearConfirmCYOAs === false) {
+					menu.item(e.sectionIndex, e.itemIndex, {
+						subtitle: 'Are you sure?'
+					});
+					clearConfirmCYOAs = true;
+				} else {
+					pinnedCYOAs = [];
+					Settings.option('pinnedCYOAs', pinnedCYOAs);
+					menu.item(e.sectionIndex, e.itemIndex, {
+						subtitle: 'Pinned CYOAs Cleared.'
+					});
+				}
+			}
+			
+			if (e.item.id === 3) {
+				if (clearConfirmPosts === false) {
+					menu.item(e.sectionIndex, e.itemIndex, {
+						subtitle: 'Are you sure?'
+					});
+					clearConfirmPosts = true;
+				} else {
+					pinnedPosts = {};
+					Settings.option('pinnedPosts', pinnedPosts);
+					menu.item(e.sectionIndex, e.itemIndex, {
+						subtitle: 'Pinned Posts Cleared.'
+					});
+				}
 			}
 		});
 
@@ -434,7 +466,7 @@ var postID   = currentID.postID;
 	}; //Loads posts the QM replied to
 	var loadPostMenu     = function() {
 		var parsedPinnedPosts = pinnedPosts;	
-		if (parsedPinnedPosts[currentID.cyoaID] === undefined) parsedPinnedPosts[currentID.cyoaID] = [];
+		if (parsedPinnedPosts[current.cyoaID] === undefined) parsedPinnedPosts[current.cyoaID] = [];
 		
 		var menu = new UI.Menu({
 			fullscreen: false,
@@ -442,7 +474,7 @@ var postID   = currentID.postID;
 				title: 'Post Menu',
 				items: [{
 					id: -1,
-					title: ((parsedPinnedPosts[currentID.cyoaID].contains(currentID.postID)) ? 'Unpin CYOA' : 'Pin CYOA')
+					title: ((parsedPinnedPosts[current.cyoaID].contains(current.postID)) ? 'Unpin CYOA' : 'Pin CYOA')
 				},{
 					id: -2,
 					title: 'View Replies'
@@ -452,23 +484,23 @@ var postID   = currentID.postID;
 		
 		menu.on('select', function(e){
 			if (e.item.id === -1) {			
-				if (parsedPinnedPosts[currentID.cyoaID].contains(currentID.postID)) {
-					var index = parsedPinnedPosts[currentID.cyoaID].indexOf(currentID.postID);
+				if (parsedPinnedPosts[current.cyoaID].contains(current.postID)) {
+					var index = parsedPinnedPosts[current.cyoaID].indexOf(current.postID);
 					
-					parsedPinnedPosts[currentID.cyoaID].splice(index, 1);
+					parsedPinnedPosts[current.cyoaID].splice(index, 1);
 					
-					console.log('removed ' + currentID.postID + ' from ' + currentID.cyoaID);
+					console.log('removed ' + current.postID + ' from ' + current.cyoaID);
 				} else {
 					
-					parsedPinnedPosts[currentID.cyoaID].push(currentID.postID);
+					parsedPinnedPosts[current.cyoaID].push(current.postID);
 					
-					console.log('added ' + currentID.postID + ' to ' + currentID.cyoaID);
+					console.log('added ' + current.postID + ' to ' + current.cyoaID);
 				}
 				
-				console.log(parsedPinnedPosts[currentID.cyoaID]);
+				console.log(parsedPinnedPosts[current.cyoaID]);
 				
 				menu.item(e.sectionIndex, e.itemIndex, {
-					title: ((parsedPinnedPosts[currentID.cyoaID].contains(currentID.postID)) ? 'Unpin CYOA' : 'Pin CYOA')
+					title: ((parsedPinnedPosts[current.cyoaID].contains(current.postID)) ? 'Unpin CYOA' : 'Pin CYOA')
 				});
 				
 				Settings.option('pinnedPosts', parsedPinnedPosts);
@@ -483,7 +515,7 @@ var postID   = currentID.postID;
 		menu.show();
 	};
 	var loadCYOASettings = function() {
-		var cyoaID = currentID.cyoaID;
+		var cyoaID = current.cyoaID;
 		var data = currentData;
 		console.log('Settings Loading. cyoaID: ' + cyoaID);
 		loadSplash.show();
@@ -543,7 +575,7 @@ var postID   = currentID.postID;
 		console.log('Settings Loaded');
 	}; //load settings & stuff for a CYOA
 	var loadDetails      = function() {
-		var cyoaID = currentID.cyoaID;
+		var cyoaID = current.cyoaID;
 		var data = currentData;
 		console.log('Details Loading. cyoaID: ' + cyoaID);
 		loadSplash.show();
@@ -575,8 +607,8 @@ var postID   = currentID.postID;
 		console.log('Details Loaded');
 	}; //Detailed view for a CYOA
 	var loadQMPost       = function() {
-		var cyoaID = currentID.cyoaID;
-		var postID = currentID.postID;
+		var cyoaID = current.cyoaID;
+		var postID = current.postID;
 		console.log('Comment Loading. cyoaID: ' + cyoaID + '. postID: ' + postID);
 		loadSplash.show();
 		ajax({
@@ -598,12 +630,10 @@ var postID   = currentID.postID;
 		);
 	}; //QM posts
 	var loadPosts        = function() {
-		var cyoaID = currentID.cyoaID;
-		var threadID = currentID.threadID;
-		console.log('Posts Loading. cyoaID: ' + cyoaID + '. threadID: ' + threadID);
+		console.log('Posts Loading. cyoaID: ' + current.cyoaID + '. threadID: ' + current.threadID);
 		loadSplash.show();
 		ajax({
-				url: pineAPI + 'thread/' + cyoaID + '/' + threadID,
+				url: pineAPI + 'thread/' + current.cyoaID + '/' + current.threadID,
 				type: 'json'
 			},
 			function(data) {
@@ -614,19 +644,19 @@ var postID   = currentID.postID;
 				var menu = new UI.Menu({
 					fullscreen: false,
 					sections: [{
-						title: 'Posts',
+						title: current.threadTitle,
 						items: menuItems,
 					}]
 				});
 
 				//action on select
 				menu.on('select', function(e) {
-					currentID.postID = e.item.id;
+					current.postID = e.item.id;
 					loadQMPost();
 				});
 				
 				menu.on('longSelect', function(e) {
-					currentID.postID = e.item.id;
+					current.postID = e.item.id;
 					loadPostMenu();
 				});
 
@@ -642,27 +672,28 @@ var postID   = currentID.postID;
 		);
 	}; //All QM posts from a thread
 	var loadThreads      = function() {
-		var cyoaID = currentID.cyoaID;
-		console.log('Threads Loading. cyoaID: ' + cyoaID);
+		console.log('Threads Loading. cyoaID: ' + current.cyoaID);
 		loadSplash.show();
 		ajax({
-				url: pineAPI + 'threads/' + cyoaID,
+				url: pineAPI + 'threads/' + current.cyoaID,
 				type: 'json'
 			},
 			function(data) {
-				var menuItems = formatThreads(data);
+				currentData = data;
+				var menuItems = formatThreads(currentData);
 
 				//make menu
 				var menu = new UI.Menu({
 					fullscreen: false,
 					sections: [{
-						title: 'Threads',
+						title: current.cyoaTitle,
 						items: menuItems
 					}]
 				});
 
 				menu.on('select', function(e) {
-					currentID.threadID = e.item.id;
+					current.threadID = e.item.id;
+					current.threadTitle = e.item.title;
 					loadPosts();
 				});
 
@@ -693,13 +724,14 @@ var postID   = currentID.postID;
 				loadPinTutorial();
 				return;
 			}
-			currentID.cyoaID = e.item.id;
+			current.cyoaID = e.item.id;
+			current.cyoaTitle = e.item.title;
 			loadThreads();
 		});
 		
 		menu.on('longSelect', function(e) {
 			if (e.item.id === -1) return;
-			currentID.cyoaID = e.item.id;
+			current.cyoaID = e.item.id;
 			loadDetails();
 		});
 		
@@ -734,7 +766,7 @@ var postID   = currentID.postID;
 				loadPinTutorial();
 				return;
 			}
-			currentID.cyoaID = e.item.id;
+			current.cyoaID = e.item.id;
 			loadThreads();
 		});
 
@@ -742,7 +774,7 @@ var postID   = currentID.postID;
 			if (e.item.id <= -1) {
 				return;
 			}
-			currentID.cyoaID = e.item.id;
+			current.cyoaID = e.item.id;
 			currentData = data;
 			loadDetails();
 		});
@@ -799,7 +831,8 @@ var postID   = currentID.postID;
 						loadPinnedPosts();
 						return;
 					}
-					currentID.cyoaID = e.item.id;
+					current.cyoaID = e.item.id;
+					current.cyoaTitle = e.item.title;
 					loadThreads();
 				});
 
@@ -809,7 +842,7 @@ var postID   = currentID.postID;
 					if (e.item.id <= -1) {
 						return;
 					}
-					currentID.cyoaID = e.item.id;
+					current.cyoaID = e.item.id;
 					currentData = data;
 					loadDetails();
 				});
@@ -844,7 +877,6 @@ String.prototype.capitalize = function() { //shh cloudpebble I know what I'm doi
 }; //js cant into capitalize
 Array.prototype.contains = function(obj) {
 	var i = this.length;
-	//var parsedObj = JSON.parse(obj);
 	while (i--) {
 		if (this[i] === obj) {
 			return true;
@@ -867,6 +899,7 @@ function formatPost(str) {
 	str = str.replace(/&#039;/g, '\'');
 	str = str.replace(/&quot;/g, '\"');
 	str = str.replace(/&rsquo;/g, '’');
+	str = str.replace(/&lsquo;/g, '‘');
 	str = str.replace(/&rdquo;/g, '”');
 	str = str.replace(/&ldquo;/g, '“');
 	str = str.replace(/&ndash;/g, '–');
@@ -878,17 +911,18 @@ function formatPost(str) {
 
 function createPostCard(choppedWord) {
 	loadSplash.show();
+	var pageSize = 930; //where to chop off the text and create a new page
 	var img = ((currentPage === 1) ? ((currentData.image_link !== null) ? ('(' + currentData.image_link + ')') : '') : '');
 	var str = formatPost(currentData.comment);
 	
-	var start = 950 * (currentPage - 1);
-	var end = (((str.length - start) > 950) ? (start + 950) : str.length);
+	var start = pageSize * (currentPage - 1);
+	var end = (((str.length - start) > pageSize) ? (start + pageSize) : str.length);
 
 	var lastWordRegex = />*\w+$/;
 	choppedWord = ((choppedWord === undefined) ? '' : choppedWord); //word that's removed if we trunicate the text
 	var body = 'You should never see this';
 
-	var pages = Math.ceil(str.length / 950);
+	var pages = Math.ceil(str.length / pageSize);
 
 	if (pages > 1) {
 		console.log('Too Big: Trunicating...');
