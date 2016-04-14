@@ -22,13 +22,13 @@ var postID   = currentID.postID;
 
 	var pineAPI = 'http://www.anonpone.com/api/'; //base url for the api
 	
-	
-	Settings.option('pinnedCYOAs', [112, 110, 109, 102, 86, 72, 55, 44, 43, 10, 7, 6]); //array of CYOA IDs
 	var pinnedCYOAs = Settings.option('pinnedCYOAs');
+	if (pinnedCYOAs === undefined) pinnedCYOAs = [];
 	Settings.option('pinnedPosts', {
 		112: [289596]
-	}); //Form of : 'CyoaId': ['postId', 'postId']
+	}); //Form of : 'CyoaId': ['postId', 'postId',...]
 	var pinnedPosts = Settings.option('pinnedPosts');
+	if (pinnedPosts === undefined) pinnedPosts = {};
 	//Settings!
 	Settings.option('sortMethod', 0);
 	var sortMethod = Settings.option('sortMethod'); //see sortMethodName
@@ -310,6 +310,36 @@ var postID   = currentID.postID;
 		if (pinnedCYOAs.length <= 0) {
 			items.push({
 				id: -1,
+				title: 'No Pinned Posts',
+				subtitle: 'Click for Tutorial'
+			});
+		}
+		return items;
+	};
+	var parsePinnedCYOAs = function() {
+		var data = currentData;
+		var items = [];
+
+		for (var i = 0; i < pinnedCYOAs.length; ++i) {
+			var id = data[pinnedCYOAs[i]].id;
+			var title = data[pinnedCYOAs[i]].title;
+			var subtitle = '[' +
+				((data[pinnedCYOAs[i]].live === '1') ? 'L' :
+					((data[pinnedCYOAs[i]].status === 'cancelled') ? 'X' :
+						data[pinnedCYOAs[i]].status.capitalize().substring(0, 1))) +
+				']' +
+				' ' +
+				data[pinnedCYOAs[i]].last.timestamp.substring(2, 16);
+
+			items.push({
+				id: id,
+				title: title,
+				subtitle: subtitle
+			});
+		}
+		if (pinnedCYOAs.length <= 0) {
+			items.push({
+				id: -1,
 				title: 'No Pinned CYOAs',
 				subtitle: 'Click for Tutorial'
 			});
@@ -384,13 +414,13 @@ var postID   = currentID.postID;
 		card.body('Pinning a CYOA:' + '\n' +
 			'1: Highlight the CYOA' + '\n' +
 			'2: Longpress Select for detailed view' + '\n' +
-			'3: Press Select again for action menu' + '\n' +
+			'3: Press Select again for menu' + '\n' +
 			'4: Select \'Pin CYOA\'' + '\n' +
 			'Repeat the same steps to unpin a CYOA.' + '\n' +
 			'___________________' + '\n' +
 			'Pinning a Post:' + '\n' +
 			'1: Go to a post' + '\n' +
-			'3: Press Select for action menu' + '\n' +
+			'3: Longpress Select for menu' + '\n' +
 			'4: Select \'Pin Post\'' + '\n' +
 			'Repeat the same steps to unpin a Post.');
 
@@ -399,6 +429,59 @@ var postID   = currentID.postID;
 		loadSplash.hide();
 		console.log('Pin tut Loaded');
 	}; //lrn 2 pin
+	var loadReplies      = function() {
+		parseReplies();
+	}; //Loads posts the QM replied to
+	var loadPostMenu     = function() {
+		var parsedPinnedPosts = pinnedPosts;	
+		if (parsedPinnedPosts[currentID.cyoaID] === undefined) parsedPinnedPosts[currentID.cyoaID] = [];
+		
+		var menu = new UI.Menu({
+			fullscreen: false,
+			sections: [{
+				title: 'Post Menu',
+				items: [{
+					id: -1,
+					title: ((parsedPinnedPosts[currentID.cyoaID].contains(currentID.postID)) ? 'Unpin CYOA' : 'Pin CYOA')
+				},{
+					id: -2,
+					title: 'View Replies'
+				}]
+			}]
+		});
+		
+		menu.on('select', function(e){
+			if (e.item.id === -1) {			
+				if (parsedPinnedPosts[currentID.cyoaID].contains(currentID.postID)) {
+					var index = parsedPinnedPosts[currentID.cyoaID].indexOf(currentID.postID);
+					
+					parsedPinnedPosts[currentID.cyoaID].splice(index, 1);
+					
+					console.log('removed ' + currentID.postID + ' from ' + currentID.cyoaID);
+				} else {
+					
+					parsedPinnedPosts[currentID.cyoaID].push(currentID.postID);
+					
+					console.log('added ' + currentID.postID + ' to ' + currentID.cyoaID);
+				}
+				
+				console.log(parsedPinnedPosts[currentID.cyoaID]);
+				
+				menu.item(e.sectionIndex, e.itemIndex, {
+					title: ((parsedPinnedPosts[currentID.cyoaID].contains(currentID.postID)) ? 'Unpin CYOA' : 'Pin CYOA')
+				});
+				
+				Settings.option('pinnedPosts', parsedPinnedPosts);
+				pinnedPosts = Settings.option('pinnedPosts');
+				return;
+			}
+			if (e.item.id === -2) {
+				loadReplies();
+				return;
+			}
+		});
+		menu.show();
+	};
 	var loadCYOASettings = function() {
 		var cyoaID = currentID.cyoaID;
 		var data = currentData;
@@ -432,9 +515,14 @@ var postID   = currentID.postID;
 				if (parsedPinnedCYOAs.contains(cyoaID)) {
 					var index = parsedPinnedCYOAs.indexOf(cyoaID);
 					parsedPinnedCYOAs.splice(index, 1);
+					Settings.option('pinnedCYOAs', parsedPinnedCYOAs);
+					pinnedCYOAs = Settings.option('pinnedCYOAs');
 					console.log('removed ' + cyoaID);
 				} else {
 					parsedPinnedCYOAs.push(cyoaID);
+					Settings.option('pinnedCYOAs', parsedPinnedCYOAs);
+					pinnedCYOAs = Settings.option('pinnedCYOAs');
+					console.log(pinnedCYOAs);
 					console.log('added ' + cyoaID);
 				}
 				console.log(parsedPinnedCYOAs);
@@ -466,7 +554,7 @@ var postID   = currentID.postID;
 			fullscreen: false,
 			style: 'small'
 		});
-		card.body(data[cyoaID].description + '\n' +
+		card.body(formatPost(data[cyoaID].description) + '\n' + //format because html tags
 			'___________________' + '\n' +
 			'Words: ' + data[cyoaID].stats.totalWordCount + '\n' +
 			'Images: ' + data[cyoaID].stats.totalImages + '\n' +
@@ -486,9 +574,6 @@ var postID   = currentID.postID;
 		loadSplash.hide();
 		console.log('Details Loaded');
 	}; //Detailed view for a CYOA
-	var loadReplies      = function() {
-		parseReplies();
-	}; //Loads posts the QM replied to
 	var loadQMPost       = function() {
 		var cyoaID = currentID.cyoaID;
 		var postID = currentID.postID;
@@ -539,6 +624,11 @@ var postID   = currentID.postID;
 					currentID.postID = e.item.id;
 					loadQMPost();
 				});
+				
+				menu.on('longSelect', function(e) {
+					currentID.postID = e.item.id;
+					loadPostMenu();
+				});
 
 				//Show menu
 				menu.show();
@@ -587,42 +677,14 @@ var postID   = currentID.postID;
 		);
 	}; //All CYOA thread
 	var loadPinnedCYOAs  = function() {
-		var data = currentData;
 		console.log('Getting ' + pinnedCYOAs.length + ' CYOAs');
 		loadSplash.show();
-		var items = [];
-
-		for (var i = 0; i < pinnedCYOAs.length; ++i) {
-			var id = data[pinnedCYOAs[i]].id;
-			var title = data[pinnedCYOAs[i]].title;
-			var subtitle = '[' +
-				((data[pinnedCYOAs[i]].live === '1') ? 'L' :
-					((data[pinnedCYOAs[i]].status === 'cancelled') ? 'X' :
-						data[pinnedCYOAs[i]].status.capitalize().substring(0, 1))) +
-				']' +
-				' ' +
-				data[pinnedCYOAs[i]].last.timestamp.substring(2, 16);
-
-			items.push({
-				id: id,
-				title: title,
-				subtitle: subtitle
-			});
-		}
-		if (pinnedCYOAs.length <= 0) {
-			items.push({
-				id: -1,
-				title: 'No Pinned CYOAs',
-				subtitle: 'Click for Tutorial'
-			});
-		}
-
+		
 		//make menu
 		var menu = new UI.Menu({
 			fullscreen: false,
 			sections: [{
 				title: 'Pinned CYOAs',
-				items: items
 			}]
 		});
 
@@ -634,7 +696,21 @@ var postID   = currentID.postID;
 			currentID.cyoaID = e.item.id;
 			loadThreads();
 		});
-
+		
+		menu.on('longSelect', function(e) {
+			if (e.item.id === -1) return;
+			currentID.cyoaID = e.item.id;
+			loadDetails();
+		});
+		
+		menu.on('show', function(e) {
+			var items = parsePinnedCYOAs();
+		
+			menu.section(1, {
+				items: items
+			});
+		});
+		
 		menu.show();
 		loadSplash.hide();
 	}; //Menu for pinned CYOAs
@@ -648,7 +724,7 @@ var postID   = currentID.postID;
 		var menu = new UI.Menu({
 			fullscreen: false,
 			sections: [{
-				title: 'Pinned CYOAs',
+				title: 'Pinned Posts',
 				items: items
 			}]
 		});
@@ -856,9 +932,7 @@ function createPostCard(choppedWord) {
 		currentPage = ((currentPage > 1) ? currentPage - 1 : 1);
 		card.hide();
 	});
-	
-	card.on('longClick', 'select', loadReplies());
-	
+
   card.show();
 	loadSplash.hide();
 }
