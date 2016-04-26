@@ -21,10 +21,11 @@
 	var pinnedCYOAs = Settings.option('pinnedCYOAs');
 	if (pinnedCYOAs === undefined) pinnedCYOAs = [];
 	
-	//Form of: {cyoaID: [postId, postID, ...]}
+	//Form of: {cyoaID: [postID, postID, ...]}
 	var pinnedPosts = Settings.option('pinnedPosts');
 	if (pinnedPosts === undefined) pinnedPosts = {};
 	
+	pinnedPosts = [{}]; //TODO
 	//Settings!
 	Settings.option('sortMethod', 0);
 	var sortMethod = Settings.option('sortMethod'); //see sortMethodName
@@ -47,9 +48,6 @@
 												'Length (Words)'
 												];
 	var sortReverse = false; // Reverse sort
-	var repliesDisplayName = ['Show', 
-														'Hide', 
-														'Collapse'];
 	
 	var choosieSays = [
 		'You found the stairs!',
@@ -86,6 +84,9 @@
 		'You might as well be coltshan',
 		'!roll 1d20'
 	];
+	
+	var bugs = [];
+	bugs += Math.random(); //programs always have bugs
 } //                                    ===  /GLBL/  ===
 { //                                    ===   INIT   ===
 	var splashWindow = new UI.Window({
@@ -285,19 +286,22 @@
 		);
 	};
 	var parsePinnedPosts = function() {
-		var data = currentData;
+		//i am so sorry for this
 		var items = [];
 
-		for (var i = 0; i < pinnedCYOAs.length; ++i) {
-			var id = data[pinnedCYOAs[i]].id;
-			var title = data[pinnedCYOAs[i]].title;
-			var subtitle = '[' +
-				((data[pinnedCYOAs[i]].live === '1') ? 'L' :
-					((data[pinnedCYOAs[i]].status === 'cancelled') ? 'X' :
-						data[pinnedCYOAs[i]].status.capitalize().substring(0, 1))) +
-				']' +
-				' ' +
-				data[pinnedCYOAs[i]].last.timestamp.substring(2, 16);
+		for (var i in pinnedPosts) {
+			for (var j in pinnedPosts[i]) {
+				for (var k in pinnedPosts[i][j]) {
+					console.log(pinnedPosts[i][j][k]);
+				}
+				console.log(pinnedPosts[i][j]);
+			}
+			console.log(pinnedPosts[i]);
+		}
+			/*
+			var id = '';
+			var title = '';
+			var subtitle = '';
 
 			items.push({
 				id: id,
@@ -305,13 +309,13 @@
 				subtitle: subtitle
 			});
 		}
-		if (pinnedCYOAs.length <= 0) {
+		if (pinnedPosts.length <= 0) {
 			items.push({
 				id: -1,
 				title: 'No Pinned Posts',
 				subtitle: 'Click for Tutorial'
 			});
-		}
+		}*/
 		return items;
 	};
 	var parsePinnedCYOAs = function() {
@@ -500,7 +504,7 @@
 				console.log(parsedPinnedPosts[current.cyoaID]);
 				
 				menu.item(e.sectionIndex, e.itemIndex, {
-					title: ((parsedPinnedPosts[current.cyoaID].contains(current.postID)) ? 'Unpin CYOA' : 'Pin CYOA')
+					title: ((parsedPinnedPosts[current.cyoaID].contains(current.postID)) ? 'Unpin Post' : 'Pin Post')
 				});
 				
 				Settings.option('pinnedPosts', parsedPinnedPosts);
@@ -766,17 +770,14 @@
 				loadPinTutorial();
 				return;
 			}
-			current.cyoaID = e.item.id;
-			loadThreads();
+			
 		});
 
 		menu.on('longSelect', function(e) {
 			if (e.item.id <= -1) {
 				return;
 			}
-			current.cyoaID = e.item.id;
-			currentData = data;
-			loadDetails();
+			
 		});
 
 		menu.show();
