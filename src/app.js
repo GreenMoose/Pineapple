@@ -23,13 +23,19 @@
 	
 	//Form of: {cyoaID: [postID, postID, ...]}
 	var pinnedPosts = Settings.option('pinnedPosts');
-	if (pinnedPosts === undefined) pinnedPosts = {};
+	if (pinnedPosts === undefined) pinnedPosts = [{}];
 	
-	pinnedPosts = [{}]; //TODO
+	pinnedPosts = [{}]; //TODO ;^)
+	
 	//Settings!
-	Settings.option('sortMethod', 0);
 	var sortMethod = Settings.option('sortMethod'); //see sortMethodName
+	if (sortMethod === undefined) sortMethod = 0;
 	
+	var sortReverse = Settings.option('sortReverse'); // Reverse sort
+	if (sortReverse === undefined) sortReverse = false;
+	
+	var fontSize = Settings.option('fontSize'); //guess
+	if (fontSize === undefined) fontSize = 0;
 	
 	var current = {
 		'cyoaID': null,
@@ -47,7 +53,7 @@
 												'Length (Posts)', 
 												'Length (Words)'
 												];
-	var sortReverse = false; // Reverse sort
+	var fontSizeName = ['small', 'large'];
 	
 	var choosieSays = [
 		'You found the stairs!',
@@ -89,9 +95,7 @@
 	bugs += Math.random(); //programs always have bugs
 } //                                    ===  /GLBL/  ===
 { //                                    ===   INIT   ===
-	var splashWindow = new UI.Window({
-		fullscreen: true
-	}); //tell people to calm their tits
+	var splashWindow = new UI.Window({}); //tell people to calm their tits
 	var background = new UI.Text({
 		position: new Vector2(0, 0),
 		size: new Vector2(144, 168),
@@ -358,7 +362,6 @@
 		var clearConfirmPosts = false;
 		
 		var menu = new UI.Menu({
-			fullscreen: false,
 			sections: [{
 				title: 'Sort',
 				items: [{
@@ -370,22 +373,30 @@
 					title: 'Reverse',
 					subtitle: sortReverse ? 'True' : 'False'
 				}]
+			},{
+				title: 'Display',
+				items :[{
+					id: 2,
+					title: 'Font Size',
+					subtitle: fontSizeName[fontSize].capitalize(),
+				}]
 			}, {
 				title: 'Clear Pins',
 				items : [{
-					id: 2,
+					id: -1,
 					title: 'Clear CYOAs'
 				}, {
-					id: 3,
+					id: -2,
 					title: 'Clear Posts'
 				}]
 			}]
 		});
 
 		menu.on('select', function(e) {
-			if (e.item.id === 0) {
+			if (e.item.id === 0) { //I know I should use switch but it's too late and I'm lazy
 				sortMethod++;
 				if (sortMethod > sortMethodName.length - 1) sortMethod = 0;
+				Settings.option('sortMethod', sortMethod);
 				menu.item(e.sectionIndex, e.itemIndex, {
 					title: e.item.title,
 					subtitle: sortMethodName[sortMethod]
@@ -394,12 +405,22 @@
 			
 			if (e.item.id === 1) {
 				sortReverse = !sortReverse;
+				Settings.option('sortReverse', sortReverse);
 				menu.item(e.sectionIndex, e.itemIndex, {
 					subtitle: sortReverse ? 'True' : 'False'
 				});
 			}
 			
 			if (e.item.id === 2) {
+				fontSize++;
+				if (fontSize > fontSizeName.length - 1) fontSize = 0;
+				Settings.option('fontSize', fontSize);
+				menu.item(e.sectionIndex, e.itemIndex, {
+					subtitle: fontSizeName[fontSize].capitalize()
+				});
+			}
+			
+			if (e.item.id === -1) {
 				if (clearConfirmCYOAs === false) {
 					menu.item(e.sectionIndex, e.itemIndex, {
 						subtitle: 'Are you sure?'
@@ -414,7 +435,7 @@
 				}
 			}
 			
-			if (e.item.id === 3) {
+			if (e.item.id === -2) {
 				if (clearConfirmPosts === false) {
 					menu.item(e.sectionIndex, e.itemIndex, {
 						subtitle: 'Are you sure?'
@@ -443,8 +464,7 @@
 			title: 'How to Pin',
 			subtitle: 'A Guide',
 			scrollable: true,
-			fullscreen: false,
-			style: 'small'
+			style: fontSizeName[fontSize]
 		});
 
 		card.body('Pinning a CYOA:' + '\n' +
@@ -473,7 +493,6 @@
 		if (parsedPinnedPosts[current.cyoaID] === undefined) parsedPinnedPosts[current.cyoaID] = [];
 		
 		var menu = new UI.Menu({
-			fullscreen: false,
 			sections: [{
 				title: 'Post Menu',
 				items: [{
@@ -526,7 +545,6 @@
 		console.log(pinnedCYOAs.contains(cyoaID));
 
 		var menu = new UI.Menu({
-			fullscreen: false,
 			sections: [{
 				title: 'Sort',
 				items: [{
@@ -587,18 +605,17 @@
 			title: data[cyoaID].title,
 			subtitle: data[cyoaID].tags,
 			scrollable: true,
-			fullscreen: false,
-			style: 'small'
+			style: fontSizeName[fontSize]
 		});
 		card.body(formatPost(data[cyoaID].description) + '\n' + //format because html tags
-			'___________________' + '\n' +
-			'Words: ' + data[cyoaID].stats.totalWordCount + '\n' +
-			'Images: ' + data[cyoaID].stats.totalImages + '\n' +
-			'Posts: ' + data[cyoaID].stats.totalPosts + '\n' +
-			'Threads: ' + data[cyoaID].stats.totalThreads + '\n' +
-			'___________________' + '\n' +
-			'Updates/Session: ' + data[cyoaID].stats.updatesPerSession + '\n' +
-			'Time/Update: ' + data[cyoaID].stats.updateTime + 'm'
+							((fontSizeName[fontSize] === 'small') ? '___________________' : '_____________') + '\n' +
+							'Words: ' + data[cyoaID].stats.totalWordCount + '\n' +
+							'Images: ' + data[cyoaID].stats.totalImages + '\n' +
+							'Posts: ' + data[cyoaID].stats.totalPosts + '\n' +
+							'Threads: ' + data[cyoaID].stats.totalThreads + '\n' +
+							((fontSizeName[fontSize] === 'small') ? '___________________' : '_____________') + '\n' +
+							'Updates/Session: ' + data[cyoaID].stats.updatesPerSession + '\n' +
+							'Time/Update: ' + data[cyoaID].stats.updateTime + 'm'
 		);
 
 		card.on('click', 'select', function() {
@@ -646,7 +663,6 @@
 
 				//make menu
 				var menu = new UI.Menu({
-					fullscreen: false,
 					sections: [{
 						title: current.threadTitle,
 						items: menuItems,
@@ -688,7 +704,6 @@
 
 				//make menu
 				var menu = new UI.Menu({
-					fullscreen: false,
 					sections: [{
 						title: current.cyoaTitle,
 						items: menuItems
@@ -717,7 +732,6 @@
 		
 		//make menu
 		var menu = new UI.Menu({
-			fullscreen: false,
 			sections: [{
 				title: 'Pinned CYOAs',
 			}]
@@ -758,7 +772,6 @@
 
 		//make menu
 		var menu = new UI.Menu({
-			fullscreen: false,
 			sections: [{
 				title: 'Pinned Posts',
 				items: items
@@ -795,7 +808,6 @@
 
 				//make menu
 				var menu = new UI.Menu({
-					fullscreen: false,
 					sections: [{
 						items: [{
 							id: -1,
@@ -913,7 +925,7 @@ function formatPost(str) {
 function createPostCard(choppedWord) {
 	loadSplash.show();
 	var pageSize = 930; //where to chop off the text and create a new page
-	var img = ((currentPage === 1) ? ((currentData.image_link !== null) ? ('(' + currentData.image_link + ')') : '') : '');
+	var img = ((currentPage === 1) ? ((currentData.image_link !== null && currentData.image_link !== '') ? ('(' + currentData.image_link + ')') : '') : '');
 	var str = formatPost(currentData.comment);
 	
 	var start = pageSize * (currentPage - 1);
@@ -950,8 +962,7 @@ function createPostCard(choppedWord) {
 		subtitle: 'No. ' + currentData.post_id + ((img !== '') ? '\n' + img : '') + ((pages == 1) ? '' : '\n' + 'Page ' + currentPage + '/' + pages),
 		body: body,
 		scrollable: true,
-		fullscreen: false,
-		style: 'small'
+		style: fontSizeName[fontSize]
 	});
 	
 	card.on('click', 'select', function() {

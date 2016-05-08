@@ -40,11 +40,12 @@
     "shortName": "Pineapple",
     "targetPlatforms": [
         "aplite",
-        "basalt"
+        "basalt",
+        "chalk"
     ],
     "uuid": "06c50e4b-a517-41e6-9e0f-aa256ebfd06f",
     "versionCode": 1,
-    "versionLabel": "1.0",
+    "versionLabel": "0.5",
     "watchapp": {
         "hiddenApp": false,
         "watchface": false
