@@ -923,15 +923,15 @@ function formatPost(str) {
 }
 
 function createPostCard(choppedWord) {
-	loadSplash.show();
-	var pageSize = 930; //where to chop off the text and create a new page
+	console.log('creating card');
+	var pageSize = 850; //where to chop off the text and create a new page
 	var img = ((currentPage === 1) ? ((currentData.image_link !== null && currentData.image_link !== '') ? ('(' + currentData.image_link + ')') : '') : '');
 	var str = formatPost(currentData.comment);
 	
 	var start = pageSize * (currentPage - 1);
 	var end = (((str.length - start) > pageSize) ? (start + pageSize) : str.length);
 
-	var lastWordRegex = />*\w+$/;
+	var lastWordRegex = /[>"']*\w{1,10}$/;
 	choppedWord = ((choppedWord === undefined) ? '' : choppedWord); //word that's removed if we trunicate the text
 	var body = 'You should never see this';
 
@@ -941,16 +941,18 @@ function createPostCard(choppedWord) {
 		console.log('Too Big: Trunicating...');
 		var strBody = choppedWord + str.substring(start, end);
 		console.log(strBody);
+		
 		if (currentPage !== pages) { //if not last page
 			choppedWord = lastWordRegex.exec(strBody);
-			if (choppedWord === null || choppedWord === undefined) {
-				choppedWord = '';
-			}
+			
+			if (choppedWord === null || choppedWord === undefined) choppedWord = '';
+			
 			strBody = strBody.replace(/\s\w+$/g, '');
 			body = strBody + '=\>' + '\n' + '[Select to Continue]';
 		} else {
 			body = strBody;
 		}
+		
 	} else {
 		body = str;
 	}
@@ -977,10 +979,10 @@ function createPostCard(choppedWord) {
 	card.on('click', 'back', function() {
 		currentPage = ((currentPage > 1) ? currentPage - 1 : 1);
 		card.hide();
+		return;
 	});
 
   card.show();
-	loadSplash.hide();
 }
 //                                    ===  /FUNC/  ===
 //wake me up inside
