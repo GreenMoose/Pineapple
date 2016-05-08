@@ -46,6 +46,7 @@
 	};
 	var currentData;
 	var currentPage;
+	var currentVersion = 0.71;
 	
 	var sortMethodName = ['Newest CYOAs',
 												'Latest Updates', 
@@ -389,6 +390,10 @@
 					id: -2,
 					title: 'Clear Posts'
 				}]
+			}, {
+				title: 'Pineapple v' + currentVersion 
+			}, {
+				title: 'by GreenMoose'
 			}]
 		});
 
@@ -924,7 +929,7 @@ function formatPost(str) {
 
 function createPostCard(choppedWord) {
 	console.log('creating card');
-	var pageSize = 850; //where to chop off the text and create a new page
+	var pageSize = 400; //where to chop off the text and create a new page
 	var img = ((currentPage === 1) ? ((currentData.image_link !== null && currentData.image_link !== '') ? ('(' + currentData.image_link + ')') : '') : '');
 	var str = formatPost(currentData.comment);
 	
@@ -960,8 +965,10 @@ function createPostCard(choppedWord) {
 	console.log(body);
 	
 	var card = new UI.Card({
-		title: ((currentData.name !== null) ? currentData.name : '') + ' ' + ((currentData.trip !== null) ? currentData.trip : ''),
-		subtitle: 'No. ' + currentData.post_id + ((img !== '') ? '\n' + img : '') + ((pages == 1) ? '' : '\n' + 'Page ' + currentPage + '/' + pages),
+		title: ((currentData.name !== null) ? currentData.name : '') + ' ' +
+					 ((currentData.trip !== null && currentPage === 1) ? currentData.trip : ''),
+		subtitle: ((currentPage === 1) ? ('No. ' + currentData.post_id + ((img !== '') ? '\n' + img : '')) + '\n' : '') + 
+							((pages == 1) ? '' : 'Page ' + currentPage + '/' + pages),
 		body: body,
 		scrollable: true,
 		style: fontSizeName[fontSize]
