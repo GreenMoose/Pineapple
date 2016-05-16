@@ -9,6 +9,7 @@
  * Let's you pin CYOAs & posts
  * Some other stuff I forgot
  */
+var currentVersion = 0.73; //guess, seriously guess
 { //                                    ===   GLBL   ===
 	var UI = require('ui');
 	var ajax = require('ajax');
@@ -37,6 +38,9 @@
 	var fontSize = Settings.option('fontSize'); //guess
 	if (fontSize === undefined) fontSize = 0;
 	
+	var dateDisplay = Settings.option('dateDisplay'); //display the update date as relative or absolute
+	if (dateDisplay === undefined) dateDisplay = 0;
+	
 	var current = {
 		'cyoaID': null,
 		'threadID': null,
@@ -46,7 +50,6 @@
 	};
 	var currentData;
 	var currentPage;
-	var currentVersion = 0.71;
 	
 	var sortMethodName = ['Newest CYOAs',
 												'Latest Updates', 
@@ -54,7 +57,9 @@
 												'Length (Posts)', 
 												'Length (Words)'
 												];
-	var fontSizeName = ['small', 'large'];
+	var fontSizeName = ['small', 'large', 'mono', 'classic-small', 'classic-large'];
+	
+	var dateDisplayName = ['Absolute', 'Relative']
 	
 	var choosieSays = [
 		'You found the stairs!',
@@ -111,7 +116,7 @@
 		position: new Vector2(0, 0),
 		size: new Vector2(144, 62),
 		text: '%I:%M %p',
-		font: 'bitham-30-black',
+		font: 'GOTHIC_28_BOLD',
 		color: 'black',
 		textOverflow: 'fill',
 		textAlign: 'center',
@@ -171,7 +176,7 @@
 	LoadSplash.prototype.error = function() {
 		splashWindow.add(load_error);
 		splashWindow.add(load_error_desc);
-		var randNum = randMinMaxInt(0, choosieSays.length);
+		var randNum = randMinMaxInt(0, choosieSays.length - 1);
 		load_error_comment.text('Choosie Says: \n"' + choosieSays[randNum] + '"');
 		splashWindow.add(load_error_comment);
 	};
@@ -200,7 +205,8 @@
 						cyoa[i].status.capitalize().substring(0, 1))) +
 				']' +
 				' ' +
-				cyoa[i].last.timestamp.substring(2, 19);
+				((dateDisplay === 0) ? cyoa[i].last.timestamp.substring(2, 19) //absolute
+			                       : time_ago(cyoa[i].last.timestamp));      //relative
 
 			items.unshift({ //add to start of array
 				id: id,
@@ -214,6 +220,14 @@
 			return items;
 		}
 	};
+	
+var sortAlphabetic = function(cyoa, prop) {
+    cyoa = cyoa.sort(function(a, b) {
+        if (sortReverse) return (a[prop] > b[prop]) ? 1 : ((a[prop] < b[prop]) ? -1 : 0);
+        else return (b[prop] > a[prop]) ? 1 : ((b[prop] < a[prop]) ? -1 : 0);
+    });
+    return cyoa;
+};
 } //                                    ===  /SORT/  ===
 { //                                    ===   PRSE   ===
 	var formatPosts      = function(posts) {
@@ -336,8 +350,9 @@
 						data[pinnedCYOAs[i]].status.capitalize().substring(0, 1))) +
 				']' +
 				' ' +
-				data[pinnedCYOAs[i]].last.timestamp.substring(2, 16);
-
+				((dateDisplay === 0) ? data[pinnedCYOAs[i]].last.timestamp.substring(2, 19) //absolute
+			                       : time_ago(data[pinnedCYOAs[i]].last.timestamp));      //relative
+    
 			items.push({
 				id: id,
 				title: title,
@@ -380,6 +395,10 @@
 					id: 2,
 					title: 'Font Size',
 					subtitle: fontSizeName[fontSize].capitalize(),
+				}, {
+					id: 3,
+					title: 'Date',
+					subtitle: dateDisplayName[dateDisplay],
 				}]
 			}, {
 				title: 'Clear Pins',
@@ -422,6 +441,15 @@
 				Settings.option('fontSize', fontSize);
 				menu.item(e.sectionIndex, e.itemIndex, {
 					subtitle: fontSizeName[fontSize].capitalize()
+				});
+			}
+			
+			if (e.item.id === 3) {
+				dateDisplay++;
+				if (dateDisplay > dateDisplayName.length - 1) dateDisplay = 0;
+				Settings.option('dateDisplay', dateDisplay);
+				menu.item(e.sectionIndex, e.itemIndex, {
+					subtitle: dateDisplayName[dateDisplay]
 				});
 			}
 			
@@ -873,10 +901,13 @@
 					});
 					menu.selection(sectionIndex, itemIndex);
 				});
-
+			
 				menu.show();
 				loadSplash.hide();
 				console.log('CYOAs loaded');
+				
+				//var sorted = sortAlphabetic(data, 'title', 'string');
+				//console.log(sorted);
 			},
 			function(error) {
 				loadSplash.error();
@@ -990,6 +1021,62 @@ function createPostCard(choppedWord) {
 	});
 
   card.show();
+}
+
+function time_ago(time){ //function I stole from StackOverflow (Thanks TheBrain!)
+	
+	time = new Date(time.substring( 0, 4),     //year
+								 (time.substring( 5, 7) - 1),//month (0-indexed because why not?)
+									time.substring( 8,10),     //day
+									time.substring(11,13),     //hour
+									time.substring(14,16),     //minute
+									time.substring(17,19)      //seconds
+								 ); //I need to do this so that this function works.
+	
+	switch (typeof time) {
+			case 'number': break;
+			case 'string': time = +new Date(time); break;
+			case 'object': if (time.constructor === Date) time = time.getTime(); break;
+			default: time = +new Date();
+	}
+	
+	var time_formats = [
+			[60, 'seconds', 1], // 60
+			[120, '1 minute ago', '1 minute from now'], // 60*2
+			[3600, 'minutes', 60], // 60*60, 60
+			[7200, '1 hour ago', '1 hour from now'], // 60*60*2
+			[86400, 'hours', 3600], // 60*60*24, 60*60
+			[172800, 'Yesterday', 'Tomorrow'], // 60*60*24*2
+			[604800, 'days', 86400], // 60*60*24*7, 60*60*24
+			[1209600, 'Last week', 'Next week'], // 60*60*24*7*4*2
+			[2419200, 'weeks', 604800], // 60*60*24*7*4, 60*60*24*7
+			[4838400, 'Last month', 'Next month'], // 60*60*24*7*4*2
+			[29030400, 'months', 2419200], // 60*60*24*7*4*12, 60*60*24*7*4
+			[58060800, 'Last year', 'Next year'], // 60*60*24*7*4*12*2
+			[2903040000, 'years', 29030400], // 60*60*24*7*4*12*100, 60*60*24*7*4*12
+			[5806080000, 'Last century', 'Next century'], // 60*60*24*7*4*12*100*2
+			[58060800000, 'centuries', 2903040000] // 60*60*24*7*4*12*100*20, 60*60*24*7*4*12*100
+	];
+	var seconds = (+new Date() - time) / 1000,
+			token = 'ago', list_choice = 1;
+
+	if (seconds === 0) {
+			return 'Just now';
+	}
+	if (seconds < 0) {
+			seconds = Math.abs(seconds);
+			token = 'from now';
+			list_choice = 2;
+	}
+	var i = 0, format;
+	while (format = time_formats[i++])
+			if (seconds < format[0]) {
+					if (typeof format[2] == 'string')
+							return format[list_choice];
+					else
+							return Math.floor(seconds / format[2]) + ' ' + format[1] + ' ' + token;
+			}
+	return time;
 }
 //                                    ===  /FUNC/  ===
 //wake me up inside
