@@ -10,7 +10,7 @@
  * Some other stuff I forgot
  */
 var currentVersion = 0.73; //guess, seriously guess
-{ //                                    ===   GLBL   ===
+//                                    ===   GLBL   ===
 	var UI = require('ui');
 	var ajax = require('ajax');
 	var Vector2 = require('vector2');
@@ -59,7 +59,7 @@ var currentVersion = 0.73; //guess, seriously guess
 												];
 	var fontSizeName = ['small', 'large', 'mono', 'classic-small', 'classic-large'];
 	
-	var dateDisplayName = ['Absolute', 'Relative']
+	var dateDisplayName = ['Absolute', 'Relative'];
 	
 	var choosieSays = [
 		'You found the stairs!',
@@ -99,101 +99,103 @@ var currentVersion = 0.73; //guess, seriously guess
 	
 	var bugs = [];
 	bugs += Math.random(); //programs always have bugs
-} //                                    ===  /GLBL/  ===
-{ //                                    ===   INIT   ===
-	var splashWindow = new UI.Window({}); //tell people to calm their tits
-	var background = new UI.Text({
-		position: new Vector2(0, 0),
-		size: new Vector2(144, 168),
-		text: '',
-		font: 'GOTHIC_28_BOLD',
-		color: 'white',
-		textOverflow: 'wrap',
-		textAlign: 'center',
-		backgroundColor: 'white'
-	});
-	var load_time = new UI.TimeText({
-		position: new Vector2(0, 0),
-		size: new Vector2(144, 62),
-		text: '%I:%M %p',
-		font: 'GOTHIC_28_BOLD',
-		color: 'black',
-		textOverflow: 'fill',
-		textAlign: 'center',
-		backgroundColor: 'white'
-	});
-	var load_text = new UI.Text({
-		position: new Vector2(0, 62),
-		size: new Vector2(144, 44),
-		text: 'Loading...',
-		font: 'GOTHIC_28_BOLD',
-		color: 'white',
-		textOverflow: 'fill',
-		textAlign: 'center',
-		backgroundColor: 'black'
-	});
-	var load_error_desc = new UI.Text({
-		position: new Vector2(0, 40),
-		size: new Vector2(144, 22),
-		text: 'Internet Connection',
-		font: 'GOTHIC_18_BOLD',
-		color: 'white',
-		textOverflow: 'wrap',
-		textAlign: 'center',
-		backgroundColor: 'black'
-	});
-	var load_error = new UI.Text({
-		position: new Vector2(0, 62),
-		size: new Vector2(144, 44),
-		text: 'Error!',
-		font: 'GOTHIC_28_BOLD',
-		color: 'white',
-		textOverflow: 'wrap',
-		textAlign: 'center',
-		backgroundColor: 'black'
-	});
-	var load_error_comment = new UI.Text({
-		position: new Vector2(0, 106),
-		size: new Vector2(144, 62),
-		text: 'Choosie Says: \n "You should never see this"',
-		font: 'GOTHIC_18_BOLD',
-		color: 'white',
-		textOverflow: 'wrap',
-		textAlign: 'center',
-		backgroundColor: 'black'
-	});
+//                                    ===  /GLBL/  ===
 
-	function LoadSplash() {}
-	LoadSplash.prototype.show = function() {
-		splashWindow.remove(load_error);
-		splashWindow.remove(load_error_desc);
-		splashWindow.remove(load_error_comment);
-		splashWindow.show();
-	};
-	LoadSplash.prototype.hide = function() {
-		splashWindow.hide();
-	};
-	LoadSplash.prototype.error = function() {
-		splashWindow.add(load_error);
-		splashWindow.add(load_error_desc);
-		var randNum = randMinMaxInt(0, choosieSays.length - 1);
-		load_error_comment.text('Choosie Says: \n"' + choosieSays[randNum] + '"');
-		splashWindow.add(load_error_comment);
-	};
+//                                    ===   INIT   ===
+var splashWindow = new UI.Window({}); //tell people to calm their tits
+var background = new UI.Text({
+	position: new Vector2(0, 0),
+	size: new Vector2(144, 168),
+	text: '',
+	font: 'GOTHIC_28_BOLD',
+	color: 'white',
+	textOverflow: 'wrap',
+	textAlign: 'center',
+	backgroundColor: 'white'
+});
+var load_time = new UI.TimeText({
+	position: new Vector2(0, 0),
+	size: new Vector2(144, 62),
+	text: '%I:%M %p',
+	font: 'GOTHIC_28_BOLD',
+	color: 'black',
+	textOverflow: 'fill',
+	textAlign: 'center',
+	backgroundColor: 'white'
+});
+var load_text = new UI.Text({
+	position: new Vector2(0, 62),
+	size: new Vector2(144, 44),
+	text: 'Loading...',
+	font: 'GOTHIC_28_BOLD',
+	color: 'white',
+	textOverflow: 'fill',
+	textAlign: 'center',
+	backgroundColor: 'black'
+});
+var load_error_desc = new UI.Text({
+	position: new Vector2(0, 40),
+	size: new Vector2(144, 22),
+	text: 'Internet Connection',
+	font: 'GOTHIC_18_BOLD',
+	color: 'white',
+	textOverflow: 'wrap',
+	textAlign: 'center',
+	backgroundColor: 'black'
+});
+var load_error = new UI.Text({
+	position: new Vector2(0, 62),
+	size: new Vector2(144, 44),
+	text: 'Error!',
+	font: 'GOTHIC_28_BOLD',
+	color: 'white',
+	textOverflow: 'wrap',
+	textAlign: 'center',
+	backgroundColor: 'black'
+});
+var load_error_comment = new UI.Text({
+	position: new Vector2(0, 106),
+	size: new Vector2(144, 62),
+	text: 'Choosie Says: \n "You should never see this"',
+	font: 'GOTHIC_18_BOLD',
+	color: 'white',
+	textOverflow: 'wrap',
+	textAlign: 'center',
+	backgroundColor: 'black'
+});
 
-	var loadSplash = new LoadSplash();
+function LoadSplash() {}
+LoadSplash.prototype.show = function() {
+	splashWindow.remove(load_error);
+	splashWindow.remove(load_error_desc);
+	splashWindow.remove(load_error_comment);
+	splashWindow.show();
+};
+LoadSplash.prototype.hide = function() {
+	splashWindow.hide();
+};
+LoadSplash.prototype.error = function() {
+	splashWindow.add(load_error);
+	splashWindow.add(load_error_desc);
+	var randNum = randMinMaxInt(0, choosieSays.length - 1);
+	load_error_comment.text('Choosie Says: \n"' + choosieSays[randNum] + '"');
+	splashWindow.add(load_error_comment);
+};
 
-	splashWindow.add(background);
-	splashWindow.add(load_text);
-	splashWindow.add(load_time);
-	loadSplash.show();
+var loadSplash = new LoadSplash();
 
-	splashWindow.on('click', 'select', function(e) {
-		loadSplash.error();
-	});
-} //                                    ===  /INIT/  ===
-{ //                                    ===   SORT   ===
-	var sortNewest = function(cyoa) { //sort by ID (low to high)
+splashWindow.add(background);
+splashWindow.add(load_text);
+splashWindow.add(load_time);
+loadSplash.show();
+
+splashWindow.on('click', 'select', function(e) {
+	loadSplash.error();
+});
+//                                    ===  /INIT/  ===
+
+//                                    ===   SORT   ===
+function sortNewest(cyoa) { //sort by ID (low to high)
 		var items = [];
 
 		for (var i in cyoa) {
@@ -220,17 +222,87 @@ var currentVersion = 0.73; //guess, seriously guess
 			return items;
 		}
 	};
+
+function sortCYOAsBy(prop) {};
+
+function extractProps(data, prop) {
+	var props = [];
+	var category = ''; //data.stats.prop or data.last.prop
 	
-var sortAlphabetic = function(cyoa, prop) {
-    cyoa = cyoa.sort(function(a, b) {
-        if (sortReverse) return (a[prop] > b[prop]) ? 1 : ((a[prop] < b[prop]) ? -1 : 0);
-        else return (b[prop] > a[prop]) ? 1 : ((b[prop] < a[prop]) ? -1 : 0);
-    });
-    return cyoa;
-};
-} //                                    ===  /SORT/  ===
-{ //                                    ===   PRSE   ===
-	var formatPosts      = function(posts) {
+	switch (prop) {
+		case 'totalPosts': //Length (Posts)
+		case 'totalWordCount': //Length (Words)
+			category = 'stats';
+			break;
+		case 'timestamp': //Latest Update
+			category = 'last';
+			break;
+	}//the other ones are at the top (data.prop)
+	
+	for (var i in data) {
+		var id = data[i].id;
+		var value = ((category === '') ? (data[i][prop]) : (data[i][category][prop])); // I wrote !== instead of === kill me
+		
+		if (prop === 'timestamp') value = timestampToDate(value);
+		
+		
+		props.push({
+			id: id,
+			prop: value
+		});
+	}
+	
+	return props; //fun fact: I forgot this line the first time
+}
+
+function propSort() {
+
+    return function (a, b) {
+			if (a.prop > b.prop) {
+            return 1;
+        } else if (a.prop < b.prop) {
+            return -1;
+        }
+        return 0;
+    };
+}
+
+function sortedToMenu(data, sorted) { //Takes sorted items and puts em' into menu format
+		var items = [];
+		var cyoa = data;
+		
+		for (var i in sorted) {
+			var j = sorted[i].id; //yes, I do hate everyone
+			var id = cyoa[j].id;
+			var title = cyoa[j].title;
+			var subtitle = '[' +
+				  ((cyoa[j].live === '1') ? 'L' :
+					((cyoa[j].status === 'cancelled') ? 'X' :
+						cyoa[j].status.substring(0, 1).capitalize())) +
+				  ']' +
+				  ' ' +
+				    ((dateDisplay === 0) ? cyoa[j].last.timestamp.substring(2, 19) //absolute
+			                           : time_ago(cyoa[j].last.timestamp));      //relative
+
+			items.unshift({ //add to start of array
+				id: id,
+				title: title,
+				subtitle: subtitle
+			});
+			console.log(id);
+			console.log(title);
+			console.log(subtitle);
+		}
+		if (sortReverse) {
+			return items.reverse();
+		} else {
+			return items;
+		}
+	}
+//                                    ===  /SORT/  ===
+
+//                                    ===   PRSE   ===
+function formatPosts(posts) {
 		var items = [];
 		var currentPost = 1;
 		var totalPosts = Object.keys(posts).length;
@@ -251,7 +323,7 @@ var sortAlphabetic = function(cyoa, prop) {
 		}
 		return items;
 	};
-	var formatThreads    = function(thread) {
+function formatThreads(thread) {
 		var items = [];
 		var currentThread = 1;
 		var totalThreads = Object.keys(thread).length;
@@ -272,7 +344,7 @@ var sortAlphabetic = function(cyoa, prop) {
 		}
 		return items;
 	};
-	var parseReplies     = function() {
+function parseReplies() {
 		var cyoaID = current.cyoaID;
 		var threadID = current.threadID;
 		
@@ -304,7 +376,7 @@ var sortAlphabetic = function(cyoa, prop) {
 			}
 		);
 	};
-	var parsePinnedPosts = function() {
+function parsePinnedPosts() {
 		//i am so sorry for this
 		var items = [];
 
@@ -337,7 +409,7 @@ var sortAlphabetic = function(cyoa, prop) {
 		}*/
 		return items;
 	};
-	var parsePinnedCYOAs = function() {
+function parsePinnedCYOAs() {
 		var data = currentData;
 		var items = [];
 
@@ -368,9 +440,10 @@ var sortAlphabetic = function(cyoa, prop) {
 		}
 		return items;
 	};
-} //                                    ===  /PRSE/  === //get x from data
-{ //                                    ===   MENU    ===
-	var loadSettings     = function() {
+//                                    ===  /PRSE/  === //get x from data
+
+//                                    ===   MENU   ===
+function loadSettings() {
 		console.log('Settings Loading');
 		loadSplash.show();
 		
@@ -489,7 +562,7 @@ var sortAlphabetic = function(cyoa, prop) {
 		loadSplash.hide();
 		console.log('Settings Loaded');
 	}; //Pineapple Settings
-	var loadPinTutorial  = function() {
+function loadPinTutorial() {
 		console.log('Pin tut Loading');
 		loadSplash.show();
 
@@ -518,10 +591,10 @@ var sortAlphabetic = function(cyoa, prop) {
 		loadSplash.hide();
 		console.log('Pin tut Loaded');
 	}; //lrn 2 pin
-	var loadReplies      = function() {
+function loadReplies() {
 		parseReplies();
 	}; //Loads posts the QM replied to
-	var loadPostMenu     = function() {
+function loadPostMenu() {
 		var parsedPinnedPosts = pinnedPosts;	
 		if (parsedPinnedPosts[current.cyoaID] === undefined) parsedPinnedPosts[current.cyoaID] = [];
 		
@@ -570,7 +643,7 @@ var sortAlphabetic = function(cyoa, prop) {
 		});
 		menu.show();
 	};
-	var loadCYOASettings = function() {
+function loadCYOASettings() {
 		var cyoaID = current.cyoaID;
 		var data = currentData;
 		console.log('Settings Loading. cyoaID: ' + cyoaID);
@@ -629,7 +702,7 @@ var sortAlphabetic = function(cyoa, prop) {
 		loadSplash.hide();
 		console.log('Settings Loaded');
 	}; //load settings & stuff for a CYOA
-	var loadDetails      = function() {
+function loadDetails() {
 		var cyoaID = current.cyoaID;
 		var data = currentData;
 		console.log('Details Loading. cyoaID: ' + cyoaID);
@@ -660,7 +733,7 @@ var sortAlphabetic = function(cyoa, prop) {
 		loadSplash.hide();
 		console.log('Details Loaded');
 	}; //Detailed view for a CYOA
-	var loadQMPost       = function() {
+function loadQMPost() {
 		var cyoaID = current.cyoaID;
 		var postID = current.postID;
 		console.log('Comment Loading. cyoaID: ' + cyoaID + '. postID: ' + postID);
@@ -683,7 +756,7 @@ var sortAlphabetic = function(cyoa, prop) {
 			}
 		);
 	}; //QM posts
-	var loadPosts        = function() {
+function loadPosts() {
 		console.log('Posts Loading. cyoaID: ' + current.cyoaID + '. threadID: ' + current.threadID);
 		loadSplash.show();
 		ajax({
@@ -724,7 +797,7 @@ var sortAlphabetic = function(cyoa, prop) {
 			}
 		);
 	}; //All QM posts from a thread
-	var loadThreads      = function() {
+function loadThreads() {
 		console.log('Threads Loading. cyoaID: ' + current.cyoaID);
 		loadSplash.show();
 		ajax({
@@ -759,7 +832,7 @@ var sortAlphabetic = function(cyoa, prop) {
 			}
 		);
 	}; //All CYOA thread
-	var loadPinnedCYOAs  = function() {
+function loadPinnedCYOAs() {
 		console.log('Getting ' + pinnedCYOAs.length + ' CYOAs');
 		loadSplash.show();
 		
@@ -797,7 +870,7 @@ var sortAlphabetic = function(cyoa, prop) {
 		menu.show();
 		loadSplash.hide();
 	}; //Menu for pinned CYOAs
-	var loadPinnedPosts  = function() {
+function loadPinnedPosts() {
 		var data = currentData;
 		console.log('Getting pinned posts');
 		loadSplash.show();
@@ -829,7 +902,7 @@ var sortAlphabetic = function(cyoa, prop) {
 		menu.show();
 		loadSplash.hide();
 	}; //Menu for pinned posts
-	var loadCYOA         = function() {
+function loadCYOA() {
 		console.log('CYOAs Loading');
 		ajax({
 				url: pineAPI + 'cyoa/',
@@ -894,7 +967,14 @@ var sortAlphabetic = function(cyoa, prop) {
 				});
 
 				menu.on('show', function() {
-					var menuItems = sortNewest(data);
+					//var menuItems = sortNewest(data);
+					var menuItems = [];
+					
+					switch (sortMethodName[sortMethod]) {
+						case 'Newest CYOAs':
+							sortCYOAsBy(id);
+					};
+					
 					menu.section(3, {
 						title: sortMethodName[sortMethod] + (sortReverse ? ' (Reversed)' : ''),
 						items: menuItems
@@ -915,10 +995,12 @@ var sortAlphabetic = function(cyoa, prop) {
 			}
 		);
 	}; //CYOAs, sorted
-} //                                    ===  /MENU/  ===
-{ //                                    ===   MAIN    ===
-	loadCYOA();
-} //                                    ===  /MAIN/  ===
+//                                    ===  /MENU/  ===
+
+//                                    ===   MAIN    ===
+loadCYOA();
+//                                    ===  /MAIN/  ===
+
 //                                   ===   FUNC   ===
 //shh js I know what I'm doing
 String.prototype.capitalize = function() { //shh cloudpebble I know what I'm doing
@@ -1023,15 +1105,21 @@ function createPostCard(choppedWord) {
   card.show();
 }
 
+function timestampToDate(time) {
+		var date = new Date(time.substring( 0, 4),     //year
+											 (time.substring( 5, 7) - 1),//month (0-indexed because why not?)
+												time.substring( 8,10),     //day
+												time.substring(11,13),     //hour
+												time.substring(14,16),     //minute
+												time.substring(17,19)      //seconds
+											 ); //I need to do this so that this function works.
+	
+	return date;
+}
+
 function time_ago(time){ //function I stole from StackOverflow (Thanks TheBrain!)
 	
-	time = new Date(time.substring( 0, 4),     //year
-								 (time.substring( 5, 7) - 1),//month (0-indexed because why not?)
-									time.substring( 8,10),     //day
-									time.substring(11,13),     //hour
-									time.substring(14,16),     //minute
-									time.substring(17,19)      //seconds
-								 ); //I need to do this so that this function works.
+	time = timestampToDate(time);
 	
 	switch (typeof time) {
 			case 'number': break;
