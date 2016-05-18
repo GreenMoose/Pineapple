@@ -9,7 +9,7 @@
  * Let's you pin CYOAs & posts
  * Some other stuff I forgot
  */
-var currentVersion = 0.80; //guess, seriously guess
+var currentVersion = 0.81; //guess, seriously guess
 //                                    ===   GLBL   ===
 	var UI = require('ui');
 	var ajax = require('ajax');
@@ -1066,7 +1066,7 @@ function createPostCard(choppedWord) {
 	var start = pageSize * (currentPage - 1);
 	var end = (((str.length - start) > pageSize) ? (start + pageSize) : str.length);
 
-	var lastWordRegex = /[>"']*\w{1,10}$/;
+	var lastWordRegex = /(?:>\s*)?[>"']*\w{1,10}$/;
 	choppedWord = ((choppedWord === undefined) ? '' : choppedWord); //word that's removed if we trunicate the text
 	var body = 'You should never see this';
 
@@ -1082,7 +1082,7 @@ function createPostCard(choppedWord) {
 			
 			if (choppedWord === null || choppedWord === undefined) choppedWord = '';
 			
-			strBody = strBody.replace(/\s\w+$/g, '');
+			strBody = strBody.replace(lastWordRegex, '');
 			body = strBody + '=\>' + '\n' + '[Select to Continue]';
 		} else {
 			body = strBody;
