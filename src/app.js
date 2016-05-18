@@ -9,7 +9,7 @@
  * Let's you pin CYOAs & posts
  * Some other stuff I forgot
  */
-var currentVersion = 0.73; //guess, seriously guess
+var currentVersion = 0.80; //guess, seriously guess
 //                                    ===   GLBL   ===
 	var UI = require('ui');
 	var ajax = require('ajax');
@@ -195,39 +195,25 @@ splashWindow.on('click', 'select', function(e) {
 //                                    ===  /INIT/  ===
 
 //                                    ===   SORT   ===
-function sortNewest(cyoa) { //sort by ID (low to high)
-		var items = [];
+function sortCYOAsBy(prop) {
+	var dataProps = extractProps(prop);
+	console.log('Extracted Props');
+	var sorted    = dataProps.sort(propSort(dataProps[1].prop));
+	console.log('Sorted Props');
+	var menuItems = sortedToMenu(sorted);
+	console.log('Converted Sorted Props to Menu Items');
+	
+	return menuItems;
+	
+	//I think I COULD do:
+	//return sortedToMenu(extractProps(prop).sort(propSort()));
+	//But just look at that. It's horrifying. Even more than the rest of the code!
+}
 
-		for (var i in cyoa) {
-			var id = cyoa[i].id;
-			var title = cyoa[i].title;
-			var subtitle = '[' +
-				((cyoa[i].live === '1') ? 'L' :
-					((cyoa[i].status === 'cancelled') ? 'X' :
-						cyoa[i].status.capitalize().substring(0, 1))) +
-				']' +
-				' ' +
-				((dateDisplay === 0) ? cyoa[i].last.timestamp.substring(2, 19) //absolute
-			                       : time_ago(cyoa[i].last.timestamp));      //relative
-
-			items.unshift({ //add to start of array
-				id: id,
-				title: title,
-				subtitle: subtitle
-			});
-		}
-		if (sortReverse) {
-			return items.reverse();
-		} else {
-			return items;
-		}
-	};
-
-function sortCYOAsBy(prop) {};
-
-function extractProps(data, prop) {
+function extractProps(prop) {
 	var props = [];
 	var category = ''; //data.stats.prop or data.last.prop
+	var data = currentData;
 	
 	switch (prop) {
 		case 'totalPosts': //Length (Posts)
@@ -238,6 +224,8 @@ function extractProps(data, prop) {
 			category = 'last';
 			break;
 	}//the other ones are at the top (data.prop)
+	
+	console.log(category);
 	
 	for (var i in data) {
 		var id = data[i].id;
@@ -255,8 +243,9 @@ function extractProps(data, prop) {
 	return props; //fun fact: I forgot this line the first time
 }
 
-function propSort() {
-
+function propSort(testProp) {
+	if (isNaN(testProp) || typeof testProp === "object"){
+		console.log('String Sort');
     return function (a, b) {
 			if (a.prop > b.prop) {
             return 1;
@@ -265,13 +254,22 @@ function propSort() {
         }
         return 0;
     };
+		
+	}else {
+		console.log('Number Sort');
+		return function (a, b) {
+			return a.prop - b.prop; //I forgot .prop here
+		};
+		
+	}
 }
 
-function sortedToMenu(data, sorted) { //Takes sorted items and puts em' into menu format
+function sortedToMenu(sorted) { //Takes sorted items and puts em' into menu format
 		var items = [];
-		var cyoa = data;
+		var cyoa = currentData;
 		
 		for (var i in sorted) {
+			if (sorted[i].id === undefined) break; //tbh I don't know why js can't stop itself
 			var j = sorted[i].id; //yes, I do hate everyone
 			var id = cyoa[j].id;
 			var title = cyoa[j].title;
@@ -289,9 +287,6 @@ function sortedToMenu(data, sorted) { //Takes sorted items and puts em' into men
 				title: title,
 				subtitle: subtitle
 			});
-			console.log(id);
-			console.log(title);
-			console.log(subtitle);
 		}
 		if (sortReverse) {
 			return items.reverse();
@@ -911,6 +906,7 @@ function loadCYOA() {
 			function(data) {
 				var sectionIndex = 0;
 				var itemIndex = 0;
+				currentData = data;
 
 				//make menu
 				var menu = new UI.Menu({
@@ -972,8 +968,29 @@ function loadCYOA() {
 					
 					switch (sortMethodName[sortMethod]) {
 						case 'Newest CYOAs':
-							sortCYOAsBy(id);
-					};
+							console.log('Sorting by: id');
+							menuItems = sortCYOAsBy('id');
+							break;
+						case 'Latest Updates':
+							console.log('Sorting by: timestamp');
+							menuItems = sortCYOAsBy('timestamp');
+							break;
+						case 'Alphabetic':
+							console.log('Sorting by: title');
+							menuItems = sortCYOAsBy('title');
+							break;
+						case 'Length (Posts)':
+							console.log('Sorting by: totalPosts');
+							menuItems = sortCYOAsBy('totalPosts');
+							break;
+						case 'Length (Words)':
+							console.log('Sorting by: totalWordCount');
+							menuItems = sortCYOAsBy('totalWordCount');
+							break;
+						default:
+							console.log('Sorting by: id (Default)');
+							menuItems = sortCYOAsBy('id');
+					}
 					
 					menu.section(3, {
 						title: sortMethodName[sortMethod] + (sortReverse ? ' (Reversed)' : ''),
