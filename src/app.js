@@ -9,96 +9,98 @@
  * Let's you pin CYOAs & posts
  * Some other stuff I forgot
  */
-var currentVersion = 0.81; //guess, seriously guess
+var currentVersion = 0.82; //guess, seriously guess
 //                                    ===   GLBL   ===
-	var UI = require('ui');
-	var ajax = require('ajax');
-	var Vector2 = require('vector2');
-	var Settings = require('settings');
+var UI = require('ui');
+var ajax = require('ajax');
+var Vector2 = require('vector2');
+var Settings = require('settings');
 
-	var pineAPI = 'http://www.anonpone.com/api/'; //base url for the api
-	
-	//Form of: [cyoaID, cyoaID, ...]
-	var pinnedCYOAs = Settings.option('pinnedCYOAs');
-	if (pinnedCYOAs === undefined) pinnedCYOAs = [];
-	
-	//Form of: {cyoaID: [postID, postID, ...]}
-	var pinnedPosts = Settings.option('pinnedPosts');
-	if (pinnedPosts === undefined) pinnedPosts = [{}];
-	
-	pinnedPosts = [{}]; //TODO ;^)
-	
-	//Settings!
-	var sortMethod = Settings.option('sortMethod'); //see sortMethodName
-	if (sortMethod === undefined) sortMethod = 0;
-	
-	var sortReverse = Settings.option('sortReverse'); // Reverse sort
-	if (sortReverse === undefined) sortReverse = false;
-	
-	var fontSize = Settings.option('fontSize'); //guess
-	if (fontSize === undefined) fontSize = 0;
-	
-	var dateDisplay = Settings.option('dateDisplay'); //display the update date as relative or absolute
-	if (dateDisplay === undefined) dateDisplay = 0;
-	
-	var current = {
-		'cyoaID': null,
-		'threadID': null,
-		'postID': null,
-		'cyoaTitle': null,
-		'threadTitle': null
-	};
-	var currentData;
-	var currentPage;
-	
-	var sortMethodName = ['Newest CYOAs',
-												'Latest Updates', 
-												'Alphabetic', 
-												'Length (Posts)', 
-												'Length (Words)'
-												];
-	var fontSizeName = ['small', 'large', 'mono', 'classic-small', 'classic-large'];
-	
-	var dateDisplayName = ['Absolute', 'Relative'];
-	
-	var choosieSays = [
-		'You found the stairs!',
-		'Mango dindu nuffin',
-		'Pinkie cares!',
-		'Spitfire doesn\'t care',
-		'>bats/humans\ndropped',
-		'Railroads aren\'t just for trains',
-		'>memes',
-		'Bow down to your god',
-		'Not every character will survive',
-		'Nips is a lich',
-		'Fear Inept\'s bloodlust',
-		'Res is a normie',
-		'Everyone is for sexual',
-		'\'>tomorrow\' -nobby, 10 years ago',
-		'/ss/ or bust',
-		'bump',
-		'Storyteller is kill',
-		'Save the poners!',
-		'NaN!',
-		'Your waifu is mine',
-		'They\'re not real',
-		'You should follow ALL the quests',
-		'ERF PONY STRENGTH',
-		'Harvest a whore',
-		'CYOA was a mistake',
-		'Your meme is dead',
-		'wew lad',
-		'Naan-teen\neen-ches',
-		'Not everyone is bound to succeed.',
-		'>Hot opinions',
-		'Why even try?',
-		'You might as well be coltshan',
-		'!roll 1d20'
-	];
-	
-	var bugs = [];
-	bugs += Math.random(); //programs always have bugs
+var pineAPI = 'http://www.anonpone.com/api/'; //base url for the api
+
+//Form of: [cyoaID, cyoaID, ...]
+var pinnedCYOAs = Settings.option('pinnedCYOAs');
+if (pinnedCYOAs === undefined) pinnedCYOAs = [];
+
+//Form of: {cyoaID: [postID, postID, ...]}
+var pinnedPosts = Settings.option('pinnedPosts');
+if (pinnedPosts === undefined) pinnedPosts = [{}];
+
+pinnedPosts = [{}]; //TODO ;^)
+
+//Settings!
+var sortMethod = Settings.option('sortMethod'); //see sortMethodName
+if (sortMethod === undefined) sortMethod = 0;
+
+var sortReverse = Settings.option('sortReverse'); // Reverse sort
+if (sortReverse === undefined) sortReverse = false;
+
+var fontSize = Settings.option('fontSize'); //guess
+if (fontSize === undefined) fontSize = 0;
+
+var dateDisplay = Settings.option('dateDisplay'); //display the update date as relative or absolute
+if (dateDisplay === undefined) dateDisplay = 0;
+
+var current = {
+	'cyoaID': null,
+	'threadID': null,
+	'postID': null,
+	'cyoaTitle': null,
+	'threadTitle': null
+};
+var currentData;
+var currentPage;
+
+var sortMethodName  = ['Newest CYOAs', 'Latest Updates', 'Alphabetic', 'Length (Posts)', 'Length (Words)'];
+var fontSizeName    = ['small', 'large', 'mono', 'classic-small', 'classic-large'];
+var dateDisplayName = ['Absolute', 'Relative'];
+
+var choosieSays = [
+	'You found the stairs!',
+	'Mango dindu nuffin',
+	'Pinkie cares!',
+	'Spitfire doesn\'t care',
+	'>bats/humans\ndropped',
+	'Railroads aren\'t just for trains',
+	'>memes',
+	'Bow down to your god',
+	'Not every character will survive',
+	'Nips is a lich',
+	'Fear Inept\'s bloodlust',
+	'Res is a normie',
+	'Everyone is for sexual',
+	'\'>tomorrow\' -nobby, 10 years ago',
+	'/ss/ or bust',
+	'bump',
+	'Storyteller is kill',
+	'Save the poners!',
+	'NaN!',
+	'Your waifu is mine',
+	'They\'re not real',
+	'You should follow ALL the quests',
+	'ERF PONY STRENGTH',
+	'Harvest a whore',
+	'CYOA was a mistake',
+	'Your meme is dead',
+	'wew lad',
+	'Naan-teen\neen-ches',
+	'Not everyone is bound to succeed.',
+	'>Hot opinions',
+	'Why even try?',
+	'You might as well be coltshan',
+	'!roll 1d20',
+	'Oh tubesand, only you understand me',
+	'>>>/qst/',
+	'Nice, meaty docks',
+	'Quads Event: QM updates!',
+	'Naaa',
+	'SFB, lewds when?',
+	'Pon, pone, poner, hoers'
+];
+
+var bugs = randMinMaxInt(1, Number.MAX_SAFE_INTEGER); //programs always have bugs
+//For reference, MAX_SAFE_INTEGER is 9007199254740991. Which seems about right.
+console.log('Bugs: ' + bugs);
 //                                    ===  /GLBL/  ===
 
 //                                    ===   INIT   ===
@@ -191,11 +193,11 @@ loadSplash.show();
 
 splashWindow.on('click', 'select', function(e) {
 	loadSplash.error();
-});
+}); //No error checking so you can cause an error anytime!
 //                                    ===  /INIT/  ===
 
 //                                    ===   SORT   ===
-function sortCYOAsBy(prop) {
+function sortCYOAsBy(prop)  {
 	var dataProps = extractProps(prop);
 	console.log('Extracted Props');
 	var sorted    = dataProps.sort(propSort(dataProps[1].prop));
@@ -209,7 +211,6 @@ function sortCYOAsBy(prop) {
 	//return sortedToMenu(extractProps(prop).sort(propSort()));
 	//But just look at that. It's horrifying. Even more than the rest of the code!
 }
-
 function extractProps(prop) {
 	var props = [];
 	var category = ''; //data.stats.prop or data.last.prop
@@ -242,7 +243,6 @@ function extractProps(prop) {
 	
 	return props; //fun fact: I forgot this line the first time
 }
-
 function propSort(testProp) {
 	if (isNaN(testProp) || typeof testProp === "object"){
 		console.log('String Sort');
@@ -263,7 +263,6 @@ function propSort(testProp) {
 		
 	}
 }
-
 function sortedToMenu(sorted) { //Takes sorted items and puts em' into menu format
 		var items = [];
 		var cyoa = currentData;
@@ -317,7 +316,7 @@ function formatPosts(posts) {
 			});
 		}
 		return items;
-	};
+	}
 function formatThreads(thread) {
 		var items = [];
 		var currentThread = 1;
@@ -338,8 +337,8 @@ function formatThreads(thread) {
 			});
 		}
 		return items;
-	};
-function parseReplies() {
+	}
+function parseReplies()     {
 		var cyoaID = current.cyoaID;
 		var threadID = current.threadID;
 		
@@ -370,7 +369,7 @@ function parseReplies() {
 				console.log('Replies Load Fail');
 			}
 		);
-	};
+	}
 function parsePinnedPosts() {
 		//i am so sorry for this
 		var items = [];
@@ -403,7 +402,7 @@ function parsePinnedPosts() {
 			});
 		}*/
 		return items;
-	};
+	}
 function parsePinnedCYOAs() {
 		var data = currentData;
 		var items = [];
@@ -434,11 +433,11 @@ function parsePinnedCYOAs() {
 			});
 		}
 		return items;
-	};
+	}
 //                                    ===  /PRSE/  === //get x from data
 
 //                                    ===   MENU   ===
-function loadSettings() {
+function loadSettings()     {
 		console.log('Settings Loading');
 		loadSplash.show();
 		
@@ -556,8 +555,8 @@ function loadSettings() {
 		menu.show();
 		loadSplash.hide();
 		console.log('Settings Loaded');
-	}; //Pineapple Settings
-function loadPinTutorial() {
+	} //Pineapple Settings
+function loadPinTutorial()  {
 		console.log('Pin tut Loading');
 		loadSplash.show();
 
@@ -585,11 +584,11 @@ function loadPinTutorial() {
 		card.show();
 		loadSplash.hide();
 		console.log('Pin tut Loaded');
-	}; //lrn 2 pin
-function loadReplies() {
+	} //lrn 2 pin
+function loadReplies()      {
 		parseReplies();
-	}; //Loads posts the QM replied to
-function loadPostMenu() {
+	} //Loads posts the QM replied to
+function loadPostMenu()     {
 		var parsedPinnedPosts = pinnedPosts;	
 		if (parsedPinnedPosts[current.cyoaID] === undefined) parsedPinnedPosts[current.cyoaID] = [];
 		
@@ -637,7 +636,7 @@ function loadPostMenu() {
 			}
 		});
 		menu.show();
-	};
+	}
 function loadCYOASettings() {
 		var cyoaID = current.cyoaID;
 		var data = currentData;
@@ -696,8 +695,8 @@ function loadCYOASettings() {
 		menu.show();
 		loadSplash.hide();
 		console.log('Settings Loaded');
-	}; //load settings & stuff for a CYOA
-function loadDetails() {
+	} //load settings & stuff for a CYOA
+function loadDetails()      {
 		var cyoaID = current.cyoaID;
 		var data = currentData;
 		console.log('Details Loading. cyoaID: ' + cyoaID);
@@ -727,8 +726,8 @@ function loadDetails() {
 		card.show();
 		loadSplash.hide();
 		console.log('Details Loaded');
-	}; //Detailed view for a CYOA
-function loadQMPost() {
+	} //Detailed view for a CYOA
+function loadQMPost()       {
 		var cyoaID = current.cyoaID;
 		var postID = current.postID;
 		console.log('Comment Loading. cyoaID: ' + cyoaID + '. postID: ' + postID);
@@ -750,8 +749,8 @@ function loadQMPost() {
 				console.log('Comment Load fail');
 			}
 		);
-	}; //QM posts
-function loadPosts() {
+	} //QM posts
+function loadPosts()        {
 		console.log('Posts Loading. cyoaID: ' + current.cyoaID + '. threadID: ' + current.threadID);
 		loadSplash.show();
 		ajax({
@@ -791,8 +790,8 @@ function loadPosts() {
 				console.log('Posts Load Fail');
 			}
 		);
-	}; //All QM posts from a thread
-function loadThreads() {
+	} //All QM posts from a thread
+function loadThreads()      {
 		console.log('Threads Loading. cyoaID: ' + current.cyoaID);
 		loadSplash.show();
 		ajax({
@@ -826,8 +825,8 @@ function loadThreads() {
 				console.log('Threads Load Fail');
 			}
 		);
-	}; //All CYOA thread
-function loadPinnedCYOAs() {
+	} //All CYOA thread
+function loadPinnedCYOAs()  {
 		console.log('Getting ' + pinnedCYOAs.length + ' CYOAs');
 		loadSplash.show();
 		
@@ -864,8 +863,8 @@ function loadPinnedCYOAs() {
 		
 		menu.show();
 		loadSplash.hide();
-	}; //Menu for pinned CYOAs
-function loadPinnedPosts() {
+	} //Menu for pinned CYOAs
+function loadPinnedPosts()  {
 		var data = currentData;
 		console.log('Getting pinned posts');
 		loadSplash.show();
@@ -896,8 +895,8 @@ function loadPinnedPosts() {
 
 		menu.show();
 		loadSplash.hide();
-	}; //Menu for pinned posts
-function loadCYOA() {
+	} //Menu for pinned posts
+function loadCYOA()         {
 		console.log('CYOAs Loading');
 		ajax({
 				url: pineAPI + 'cyoa/',
@@ -1011,7 +1010,7 @@ function loadCYOA() {
 				console.log('CYOAs Load Fail');
 			}
 		);
-	}; //CYOAs, sorted
+	} //CYOAs, sorted
 //                                    ===  /MENU/  ===
 
 //                                    ===   MAIN    ===
@@ -1059,7 +1058,7 @@ function formatPost(str) {
 
 function createPostCard(choppedWord) {
 	console.log('creating card');
-	var pageSize = 400; //where to chop off the text and create a new page
+	var pageSize = 350; //where to chop off the text and create a new page
 	var img = ((currentPage === 1) ? ((currentData.image_link !== null && currentData.image_link !== '') ? ('(' + currentData.image_link + ')') : '') : '');
 	var str = formatPost(currentData.comment);
 	
@@ -1071,6 +1070,7 @@ function createPostCard(choppedWord) {
 	var body = 'You should never see this';
 
 	var pages = Math.ceil(str.length / pageSize);
+	if (pages === 0) pages = 1; //fix for image-only posts
 
 	if (pages > 1) {
 		console.log('Too Big: Trunicating...');
@@ -1096,7 +1096,7 @@ function createPostCard(choppedWord) {
 	
 	var card = new UI.Card({
 		title: ((currentData.name !== null) ? currentData.name : '') + ' ' +
-					 ((currentData.trip !== null && currentPage === 1) ? currentData.trip : ''),
+					 (((currentData.trip !== null && currentPage === 1) || (currentData.name === null)) ? currentData.trip : ''),
 		subtitle: ((currentPage === 1) ? ('No. ' + currentData.post_id + ((img !== '') ? '\n' + img : '')) + '\n' : '') + 
 							((pages == 1) ? '' : 'Page ' + currentPage + '/' + pages),
 		body: body,
@@ -1185,3 +1185,7 @@ function time_ago(time){ //function I stole from StackOverflow (Thanks TheBrain!
 }
 //                                    ===  /FUNC/  ===
 //wake me up inside
+/* I remember when this was less than 1000 lines long.
+ * Those were the times.
+ * A lot less shit to worry about breaking.
+ */
