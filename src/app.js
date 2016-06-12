@@ -233,8 +233,7 @@ function extractProps(prop) {
 		var value = ((category === '') ? (data[i][prop]) : (data[i][category][prop])); // I wrote !== instead of === kill me
 		
 		if (prop === 'timestamp') value = timestampToDate(value);
-		
-		
+			
 		props.push({
 			id: id,
 			prop: value
@@ -287,6 +286,9 @@ function sortedToMenu(sorted) { //Takes sorted items and puts em' into menu form
 				subtitle: subtitle
 			});
 		}
+	
+		if (sortMethodName[sortMethod] === 'Alphabetic') items = items.reverse(); //Shitty fix for shitty code
+	
 		if (sortReverse) {
 			return items.reverse();
 		} else {
@@ -404,36 +406,53 @@ function parsePinnedPosts() {
 		return items;
 	}
 function parsePinnedCYOAs() {
-		var data = currentData;
-		var items = [];
+	var data = currentData;
+	var CYOAData = {};
+	var items = [];
 
-		for (var i = 0; i < pinnedCYOAs.length; ++i) {
-			var id = data[pinnedCYOAs[i]].id;
-			var title = data[pinnedCYOAs[i]].title;
-			var subtitle = '[' +
-				((data[pinnedCYOAs[i]].live === '1') ? 'L' :
-					((data[pinnedCYOAs[i]].status === 'cancelled') ? 'X' :
-						data[pinnedCYOAs[i]].status.capitalize().substring(0, 1))) +
-				']' +
-				' ' +
-				((dateDisplay === 0) ? data[pinnedCYOAs[i]].last.timestamp.substring(2, 19) //absolute
-			                       : time_ago(data[pinnedCYOAs[i]].last.timestamp));      //relative
-    
-			items.push({
-				id: id,
-				title: title,
-				subtitle: subtitle
-			});
-		}
-		if (pinnedCYOAs.length <= 0) {
-			items.push({
-				id: -1,
-				title: 'No Pinned CYOAs',
-				subtitle: 'Click for Tutorial'
-			});
-		}
-		return items;
+	for (var i = 0; i < pinnedCYOAs.length; i++) {
+		CYOAData[pinnedCYOAs[i]] = data[pinnedCYOAs[i]]; //fuck the other CYOAs
 	}
+	
+	currentData = CYOAData;
+	
+	switch (sortMethodName[sortMethod]) {
+		case 'Newest CYOAs':
+			console.log('Sorting by: id');
+			items = sortCYOAsBy('id');
+			break;
+		case 'Latest Updates':
+			console.log('Sorting by: timestamp');
+			items = sortCYOAsBy('timestamp');
+			break;
+		case 'Alphabetic':
+			console.log('Sorting by: title');
+			items = sortCYOAsBy('title');
+			break;
+		case 'Length (Posts)':
+			console.log('Sorting by: totalPosts');
+			items = sortCYOAsBy('totalPosts');
+			break;
+		case 'Length (Words)':
+			console.log('Sorting by: totalWordCount');
+			items = sortCYOAsBy('totalWordCount');
+			break;
+		default:
+			console.log('Sorting by: id (Default)');
+			items = sortCYOAsBy('id');
+	}
+	
+	if (pinnedCYOAs.length <= 0) {
+		items.push({
+			id: -1,
+			title: 'No Pinned CYOAs',
+			subtitle: 'Click for Tutorial'
+		});
+	}
+	
+	currentData = data;
+	return items;
+}
 //                                    ===  /PRSE/  === //get x from data
 
 //                                    ===   MENU   ===
@@ -597,7 +616,7 @@ function loadPostMenu()     {
 				title: 'Post Menu',
 				items: [{
 					id: -1,
-					title: ((parsedPinnedPosts[current.cyoaID].contains(current.postID)) ? 'Unpin CYOA' : 'Pin CYOA')
+					title: ((parsedPinnedPosts[current.cyoaID].contains(current.postID)) ? 'Unpin Post' : 'Pin Post')
 				},{
 					id: -2,
 					title: 'View Replies'
